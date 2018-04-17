@@ -5,13 +5,12 @@ import os
 
 #Создает файл - результат фильтрации последнего бита в байте 
 def pictures_lsb(path, name, ind):
-    path = os.getcwd()
     container = Image.open(os.path.join(path, name))
     im_size = container.size
     im_str = container.tobytes()
     result = [255*(j % 2**(ind + 1) // 2**ind) for j in im_str]
     ans = container.frombytes(bytes(result), 'raw')
-    container.save(os.path.join(path, dirrect, 'filtered', 'r_' + name), 
+    container.save(os.path.join(path, 'filtered', 'r_' + name), 
                    container.format)
 
 
