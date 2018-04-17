@@ -1,1 +1,1 @@
-"#LSB_tests"
+#LSB_tests
