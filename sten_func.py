@@ -32,3 +32,16 @@ def picture_to_lsb_matrix(path, name, ind):
     result = np.array([j % 2**(ind + 1) // 2**ind for j in im_str])
     result = np.resize(result, (container.size[0]*len(container.mode), container.size[1]))
     return result
+
+def matrix_to_picture(matrix, size, path, name):
+    container = Image.new('RGBA', size)
+    container.frombytes(bytes(matrix), 'raw')
+    container.save(os.path.join(path, name), 'png')
+
+def shenon_entropy(matrix):
+    probabilties = [0.0] * matrix.shape[0]
+    for i in matrix:
+        probabilties[np.bincount(i)[0]] += 1
+    probabilities =  probabilities / 2
+    H = 0 - sum(probabilities * np.log2(probabilities))
+    return H
