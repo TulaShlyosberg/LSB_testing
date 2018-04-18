@@ -42,6 +42,6 @@ def shenon_entropy(matrix):
     probabilties = [0.0] * matrix.shape[0]
     for i in matrix:
         probabilties[np.bincount(i)[0]] += 1
-    probabilities =  probabilities / 2
-    H = 0 - sum(probabilities * np.log2(probabilities))
+    probabilties = [j / sum(probabilties) if j > 0 else 1 for j in probabilties]
+    H = 0 - np.sum(np.array(probabilties) * np.log2(probabilties))
     return H
