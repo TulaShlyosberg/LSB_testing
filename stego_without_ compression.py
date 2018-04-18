@@ -22,7 +22,7 @@ def write_data(data, pic):
     for byte in data:
         byte1 = extract_byte(byte)
         for bit in byte1:
-            pic[ind] = pic[ind] & LAST_ZERO_BYTE if bit == '0' else pic[ind] = pic[ind] | 1
+            pic[ind] = chr(ord(pic[ind]) & LAST_ZERO_BYTE) if bit == '0' else chr(ord(pic[ind]) | 1)
             ind += 1
             print(pic[ind], end='', file=fout)
     print(''.join(pic[ind:]))
