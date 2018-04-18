@@ -1,14 +1,10 @@
 import sten_func as sf
 import os
-import numpy
+
 
 def main():
     path = os.path.join(os.getcwd(), 'images')
-    matrix = sf.picture_to_lsb_matrix(path, 'china.png', 2)
-    print(sf.shenon_entropy(matrix))
-    matrix = sf.picture_to_lsb_matrix(path, 'china_stego.png', 2)
-    print(sf.shenon_entropy(matrix))
-
+    sf.get_balck_area_graphics(path, 'Lena.png', 'Lena_graphic', 30, 200)
 
 
 if __name__ == '__main__':
