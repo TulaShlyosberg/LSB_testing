@@ -86,6 +86,15 @@ def dfs(i, j, matrix, visited):
     return res
 
 def chi_square(path, name, x, y, width, height, color):
+    '''
+    Хи-функция для фрагмента фотографии
+    path - путь к дирректории, где лежит файл
+    name - имя файла
+    x, y - координаты верхнего левого угла фрагмента
+    width - ширина фрагмента
+    height - высота фрагмента
+    color - номер цвета (R - 0, G - 1, B - 2, A - 3), в котором лежит стеганография
+    '''
     container = Image.open(os.path.join(path, name))
     im_str = container.tobytes()
     cod = len(container.mode)
@@ -102,6 +111,9 @@ def chi_square(path, name, x, y, width, height, color):
 
 
 def black_area_frequencies(matrix, left, right):
+    '''
+    matrix - матрица, в которой ищем площади целиком заполненые нулями
+    '''
     width = len(matrix[0])
     height = len(matrix)
     length = right - left
@@ -130,7 +142,7 @@ def encode(path, name, frm):
     cod = len(container.mode)
     result = ste.write_data(data, im_str, cod)
     container.frombytes(bytes(result), 'raw')
-    container.save(os.path.join(path, 'enc_' + name), container.format)
+    container.save(os.path.join(path, 'encoded\\enc_' + name), container.format)
 
 def decode(path, name, out):
     container = Image.open(os.path.join(path, name))
@@ -144,8 +156,12 @@ def pictures_lsb_colored(path, name, ind, color):
     container = Image.open(os.path.join(path, name))
     im_size = container.size
     im_str = container.tobytes()
-    result = [255*(im_str[j] % 2**(ind + 1) // 2**ind) if j % len(container.mode) == color 
-              else 0 for j in range(len(im_str))]
+    if container.mode == 'RGBA':
+        result = [255*(im_str[j] % 2**(ind + 1) // 2**ind) if j % len(container.mode) == color 
+                  or j % len(container.mode) == 3 else 0 for j in range(len(im_str))]
+    else:
+        result = [255*(im_str[j] % 2**(ind + 1) // 2**ind) if j % len(container.mode) == color 
+                  else 0 for j in range(len(im_str))]
     ans = container.frombytes(bytes(result), 'raw')
     container.save(os.path.join(path, 'filtered', 'r_' + name), 
                    container.format)

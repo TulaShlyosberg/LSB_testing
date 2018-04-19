@@ -1,3 +1,5 @@
+
+
 def extract_data(path):
     f_data = open(path, "rb")
     data = []
@@ -17,22 +19,20 @@ def extract_byte(byte):
 
 def write_data(data, pic, code):
     ind = 0
-    LAST_ZERO_BYTE = (((1 << 9) - 1) >> 1) << 1
+    LAST_ZERO_BYTE = 254
     ans = []
 
-    if len(data) * 8 * code > len(pic):
+    if (len(data) * 8 * code > len(pic)):
         print("Your data is too big.")
-        exit(0)
+        raise Exception()
 
     for byte in data:
         byte1 = extract_byte(byte)
         for bit in byte1:
-            if ind % code == 0:
-                x = pic[ind] & LAST_ZERO_BYTE if bit == '0' else pic[ind] | 1
-            else:
-                x = pic[ind]
+            x = pic[ind] & LAST_ZERO_BYTE if bit == '0' else pic[ind] | 1
             ans.append(x)
-            ind += 1
+            ans += pic[ind + 1:ind + code]
+            ind += code
     for elem in pic[ind:]:
         ans.append(elem)
     return ans
@@ -45,8 +45,7 @@ def extract_message(pic, code):
     while res_byte != 0:
         res_byte = 0
         for i in range(8):
-            if ind % code == 0:
-                res_byte = (res_byte << 1) + (pic[ind] & 1)
-            ind += 1
+            res_byte = res_byte*2 + (pic[ind] & 1)
+            ind += code
         res.append(res_byte)
     return res
