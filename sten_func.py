@@ -18,8 +18,10 @@ def pictures_lsb(path, name, ind=0):
                    container.format)
 
 
-#Считывает из файла в матрицу из 1 и 0
 def lsb_to_matrix(path, name):
+    '''
+    Делает из отфильтрованного файла матрицу
+    '''
     container = Image.open(os.path.join(path, name))
     im_str = container.tobytes()
     result = np.array([j//255 for j in im_str])
@@ -29,8 +31,10 @@ def lsb_to_matrix(path, name):
     return result, cod
 
 
-#Каждому байту сопоставляет бит на месте ind
 def picture_to_lsb_matrix(path, name, ind=0):
+    '''
+    Делает из картинки булевскую матрицу, вылеляя из каждого байта 
+    '''
     container = Image.open(os.path.join(path, name))
     im_size = container.size
     im_str = container.tobytes()
@@ -85,6 +89,19 @@ def dfs(i, j, matrix, visited):
             stack.append((i, j + 1))
     return res
 
+def chi_square_from_frag(frag):
+    frequencies_1 = np.zeros(128)
+    frequencies_2 = np.zeros(128)
+    if len(frag) == 0:
+        return -1
+    for i in frag:
+        if i % 2 == 1:
+            frequencies_1[i // 2] += 1
+        if i % 2 == 0:
+            frequencies_2[i//2] += 1
+    delta = (frequencies_1 - frequencies_2)**2 / np.sum(frequencies_1 + frequencies_2)**2
+    return np.sum(delta)
+
 def chi_square(path, name, x, y, width, height, color):
     '''
     Хи-функция для фрагмента фотографии
@@ -99,20 +116,25 @@ def chi_square(path, name, x, y, width, height, color):
     im_str = container.tobytes()
     cod = len(container.mode)
     frag = loupe(im_str, x, y, width, height, container.size, cod)
-    frequencies_1 = np.zeros(128)
-    frequencies_2 = np.zeros(128)
-    for i in frag:
-        if i % 2 == 1:
-            frequencies_1[i // 2] += 1
-        if i % 2 == 0:
-            frequencies_2[i//2] += 1
-    delta = (frequencies_1 - frequencies_2)**2 / np.sum(frequencies_1 + frequencies_2)**2
-    return np.sum(delta)
+    return chi_square_from_frag(frag)
+
+def chi_square_all(path, name, color):
+    container = Image.open(os.path.join(path, name))
+    height, width = container.size
+    im_str = container.tobytes()
+    cod = len(container.mode)
+    for x in range(0, width, 100):
+        for y in range(0, height, 100):
+            frag = loupe(im_str, x, y, 100, 100, (height, width), cod)
+            print('chi_square for coords({0}, {1}) is {2}'.format(x, y, chi_square_from_frag(frag)))
 
 
 def black_area_frequencies(matrix, left, right):
     '''
+    Функция возвращает массив frequenciesх[i from left to right] - количество встреч блоков площадью i 
     matrix - матрица, в которой ищем площади целиком заполненые нулями
+    left - левая граница индекса
+    right - правая граница индекса
     '''
     width = len(matrix[0])
     height = len(matrix)
@@ -138,7 +160,7 @@ def get_balck_area_graphics(path, name_from, name_to, left, right):
 def encode(path, name, frm):
     container = Image.open(os.path.join(path, name))
     im_str = container.tobytes()
-    data = ste.extract_data(frm)
+    data = ste.extract_data(frm) + [0, 0]
     cod = len(container.mode)
     result = ste.write_data(data, im_str, cod)
     container.frombytes(bytes(result), 'raw')
@@ -153,12 +175,17 @@ def decode(path, name, out):
         fout.write(bytes(result))
 
 def pictures_lsb_colored(path, name, ind, color):
+    '''
+    Фильтрует изображение, извлекая из каждого байта,
+    соответсвующего цвету color, бит с номером ind,
+    и формирует новое изображение
+    '''
     container = Image.open(os.path.join(path, name))
     im_size = container.size
     im_str = container.tobytes()
-    if container.mode == 'RGBA':
+    if len(container.mode) == 4:
         result = [255*(im_str[j] % 2**(ind + 1) // 2**ind) if j % len(container.mode) == color 
-                  or j % len(container.mode) == 3 else 0 for j in range(len(im_str))]
+                else 255 if j % len(container.mode) == 3 else 0 for j in range(len(im_str))]
     else:
         result = [255*(im_str[j] % 2**(ind + 1) // 2**ind) if j % len(container.mode) == color 
                   else 0 for j in range(len(im_str))]
@@ -169,7 +196,9 @@ def pictures_lsb_colored(path, name, ind, color):
 
 def loupe(im_str, x, y, width, height, size,  cod=1, color=0):
     result = list()
-    p_height, p_width = size
+    p_width, p_height = size
+    if x + width > p_width or y + height > p_height:
+        return []
     for _y in range(y, y + height):
         for _x in range(x + color, x + width*cod + color, cod):
             result.append(im_str[_y*p_width*cod + _x])
