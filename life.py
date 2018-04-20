@@ -47,26 +47,27 @@ def living(matrix, days=1):
     return matrix
 
 
-# a file, where is matrix for game
-fin = open("matrix.txt", "r")
+def read():
+    # a file, where is matrix for game
+    fin = open("matrix.txt", "r")
 
-# high and width of matrix
-n, m = list(map(int, input().split()))
+    # high and width of matrix
+    n, m = list(map(int, input().split()))
 
-# for file like "010"
-# matrix = [[int(elem) for elem in list(fin.readline().rstrip())] for q in range(n)]
+    # for file like "010"
+    # matrix = [[int(elem) for elem in list(fin.readline().rstrip())] for q in range(n)]
 
-# for file like "0 1 0"
-matrix = [list(map(int, fin.readline().rstrip().split())) for q in range(n)]
+    # for file like "0 1 0"
+    matrix = [list(map(int, fin.readline().rstrip().split())) for _ in range(n)]
 
-# for stdin
-# matrix = [list(map(int, input().split())) for q in range(n)]
+    # for stdin
+    # matrix = [list(map(int, input().split())) for q in range(n)]
 
-# a number of days of matrix's life
-iterations = int(input())
-matrix = living(matrix, iterations)
+    return matrix
 
-# print a state of matrix after 'days' days (iterations)
-fout = open("result.txt", "w")
-for line in matrix:
-    print(*line, file=fout)
+
+def write(matrix):
+    # print a state of matrix after 'days' days (iterations)
+    fout = open("matrix.txt", "w")
+    for line in matrix:
+        print(*line, file=fout)

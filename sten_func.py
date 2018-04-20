@@ -1,14 +1,22 @@
 from PIL import Image
 import numpy as np
 import os
-from collections import defaultdict
 from collections import deque
 import matplotlib.pyplot as plt
 import stego_encoded as ste
+import life
 
 
-#Создает файл - результат фильтрации последнего бита в байте 
+# Создает файл - результат фильтрации последнего бита в байте
 def pictures_lsb(path, name, ind=0):
+    '''
+    Создает файл - результат фильтрации последнего бита в байте
+    :param path:
+    :param name:
+    :param ind:
+    :return:
+    '''
+
     container = Image.open(os.path.join(path, name))
     im_size = container.size
     im_str = container.tobytes()
@@ -43,6 +51,7 @@ def picture_to_lsb_matrix(path, name, ind=0):
     result = np.resize(result, (container.size[0]*cod, container.size[1]))
     return result, cod
 
+
 def picture_to_lsb_matrix_colored(path, name, ind, color):
     container = Image.open(os.path.join(path, name))
     im_size = container.size
@@ -52,10 +61,12 @@ def picture_to_lsb_matrix_colored(path, name, ind, color):
     result = np.resize(result, (container.size[0], container.size[1]))
     return result
 
+
 def matrix_to_picture(matrix, size, path, name):
     container = Image.new('RGBA', size)
     container.frombytes(bytes(matrix), 'raw')
     container.save(os.path.join(path, name), 'png')
+
 
 def shenon_entropy(matrix):
     probabilties = [0.0] * (matrix.shape[0] + 1)
@@ -67,6 +78,7 @@ def shenon_entropy(matrix):
     probabilties = [j / sum(probabilties) if j > 0 else 1 for j in probabilties]
     H = 0 - np.sum(np.array(probabilties) * np.log2(probabilties))
     return H
+
 
 def dfs(i, j, matrix, visited):
     stack = deque()
@@ -89,6 +101,7 @@ def dfs(i, j, matrix, visited):
             stack.append((i, j + 1))
     return res
 
+
 def chi_square_from_frag(frag):
     frequencies_1 = np.zeros(128)
     frequencies_2 = np.zeros(128)
@@ -101,6 +114,7 @@ def chi_square_from_frag(frag):
             frequencies_2[i//2] += 1
     delta = (frequencies_1 - frequencies_2)**2 / np.sum(frequencies_1 + frequencies_2)**2
     return np.sum(delta)
+
 
 def chi_square(path, name, x, y, width, height, color):
     '''
@@ -117,6 +131,7 @@ def chi_square(path, name, x, y, width, height, color):
     cod = len(container.mode)
     frag = loupe(im_str, x, y, width, height, container.size, cod)
     return chi_square_from_frag(frag)
+
 
 def chi_square_all(path, name, color):
     container = Image.open(os.path.join(path, name))
@@ -149,13 +164,15 @@ def black_area_frequencies(matrix, left, right):
                     frequencies[ans - left] += 1
     return frequencies
 
-def get_balck_area_graphics(path, name_from, name_to, left, right):
+
+def get_black_area_graphics(path, name_from, name_to, left, right):
     matr = picture_to_lsb_matrix(path, name_from, 0)
     frequencies = black_area_frequencies(matr, left, right)
     fig = plt.figure()
     plt.title('Распределение черных областей по lsb матрице рисунка')
     plt.plot(range(left, right), frequencies)
     plt.savefig(os.path.join(path, name_to))
+
 
 def encode(path, name, frm):
     container = Image.open(os.path.join(path, name))
@@ -166,6 +183,7 @@ def encode(path, name, frm):
     container.frombytes(bytes(result), 'raw')
     container.save(os.path.join(path, 'encoded\\enc_' + name), container.format)
 
+
 def decode(path, name, out):
     container = Image.open(os.path.join(path, name))
     im_str = container.tobytes()
@@ -174,11 +192,17 @@ def decode(path, name, out):
     with open(out, "wb") as fout:
         fout.write(bytes(result))
 
+
 def pictures_lsb_colored(path, name, ind, color):
     '''
     Фильтрует изображение, извлекая из каждого байта,
     соответсвующего цвету color, бит с номером ind,
     и формирует новое изображение
+    :param path: путь до директории
+    :param name: имя файла
+    :param ind: номер бита
+    :param color:
+    :return:
     '''
     container = Image.open(os.path.join(path, name))
     im_size = container.size
@@ -203,3 +227,17 @@ def loupe(im_str, x, y, width, height, size,  cod=1, color=0):
         for _x in range(x + color, x + width*cod + color, cod):
             result.append(im_str[_y*p_width*cod + _x])
     return result
+
+
+def count_statistics(matrix, iterations):
+    '''
+    Считает энтропию Шеннона для нескольких итераций игры "Жизнь"
+    :param matrix: матрица 0 и 1 для игры
+    :param iterations: количество раундов игры
+    :return: лист энтропий Шеннона, на i-м месте стоит энтропия для i-й итерации
+    '''
+    ans = [shenon_entropy(matrix)]
+    for _ in range(iterations):
+        matrix = life.living(matrix)
+        ans.append(shenon_entropy(matrix))
+    return ans
