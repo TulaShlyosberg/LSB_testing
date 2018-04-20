@@ -1,5 +1,12 @@
 def neighbors(matrix, i, j):
-    # Count alive neighbours for cell [i][j]
+    """
+    Считает количество соседей-клеток для клетки [i][j]
+    :param matrix: поле игры
+    :param i: координата по оси y
+    :param j: координата по оси x
+    :return: количество соседей-клеток
+    """
+
     summ = 0
     if i > 0:
         summ += matrix[i - 1][j]
