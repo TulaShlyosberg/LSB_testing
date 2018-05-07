@@ -197,6 +197,24 @@ def encode(path, name, frm):
     container.frombytes(bytes(result), 'raw')
     container.save(os.path.join(path, 'encoded\\enc_' + name), container.format)
 
+def percentaged_encode(path, name, frm, percentage):
+    '''
+    Зашифровывает данные в картинку
+    percentage - процент заполненения контейнера;
+    нельзя заполнить контейнер более, чем на эту величину
+    path - директория, в которой лежит картинка
+    name - имя картинки
+    frm  - данные, которые надо передать
+    '''
+    container = Image.open(os.path.join(path, name))
+    im_str = container.tobytes()
+    data = ste.extract_data(frm) + [0, 0]
+    cod = len(container.mode)
+    result = ste.write_data_percentaged(data, im_str, cod, percentage)
+    container.frombytes(bytes(result), 'raw')
+    container.save(os.path.join(path, 'encoded\\enc_' + name), container.format)
+
+
 def decode(path, name, out):
     '''
     Расшифровывает данные из картинки

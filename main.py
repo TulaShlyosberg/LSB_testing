@@ -115,9 +115,15 @@ def test_12():
 def test_13():
     test_life_iterations('betchoven.png')
 
+def test_14():
+    path = os.path.join(os.getcwd(), 'images')
+    sf.percentaged_encode(path, 'betchoven.png', 'data\\data_betchoven.txt', 30)
+    path = os.path.join(os.getcwd(), 'images\\encoded')
+    sf.pictures_lsb_colored(path, 'enc_betchoven.png', 0, 0)
+
 
 def main():
-    test_13()
+    test_14()
 
 if __name__ == '__main__':
     main()
