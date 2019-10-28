@@ -1,2 +1,2 @@
 # LSB_tests
-my first comment
+This is test project. Main purpose is learn to find traces of steganography.
